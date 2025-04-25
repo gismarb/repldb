@@ -6,6 +6,7 @@ Um utilitário de linha de comando em C++ para gerenciar e executar replicaçõe
 
 O projeto é composto por scripts de inicialização, código-fonte C++ e scripts SQL:
 
+```bash
 replicador-firebird/ 
 ├── bin/ 
 │ └── replicadb # Binário final após compilação 
