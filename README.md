@@ -26,6 +26,7 @@ replicador-firebird/
 │ └── build.sh # Script de build (Linux) 
 ├── Makefile 
 └── README.md
+```
 
 
 ## Pré-requisitos
