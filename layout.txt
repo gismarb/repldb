@@ -1,0 +1,19 @@
+repldb/
+├── bin/
+│   └── repldb                # Binário compilado (gerado pelo make)
+├── build/                    # Diretório para arquivos temporários da build
+├── data/
+│   └── repldb.fdb            # Banco intermediário (criado em tempo de execução)
+├── db/
+│   └── init.sql              # Script SQL para estrutura inicial
+├── include/
+│   ├── DBManager.h           # Header da classe de controle principal
+│   └── Util.h                # Funções utilitárias
+├── scripts/
+│   └── setup.sh              # Script de inicialização/configuração
+├── src/
+│   ├── main.cpp              # Código principal com o parser de comandos
+│   ├── DBManager.cpp         # Implementação das funções de replicação
+│   └── Util.cpp              # Implementações utilitárias
+├── Makefile                  # Script para compilar o projeto
+└── README.md                 # Documentação do projeto
