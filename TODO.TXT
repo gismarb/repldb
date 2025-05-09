@@ -1,0 +1,11 @@
+-- Pensar em uma forma de os artefatos criados pertecerem ao usuário "firebird" (ao menos ao final do projeto quando ele será instalado na pasta do Firebird);
+-- O passo acima deve contemplar tantos arquivos de planejamento, quanto de banco de dados;
+-- Implementar o tratamento de linha de comando (tratamento para que, caso o comando não esteja completo, não execute a ação e lance um erro);
+-- Criar um "README.md" detalhado, com exemplos de utilização (em PT-BR);
+-- Criar uma arquivo "help.txt" seguindo a idéia de uma aquivo de ajuda "padrão Linux CLI" - criar em /util/help.txt (pense em criar uma classe Help.h/cpp);
+-- 
+
+
+-- Na estrutura base do projeto, não aparece os arquivos /include/DBManager.h e /src/DBManager.cpp
+-- ATENCAO: LEMBRA DE APAGAR O ARQUIVO REPLDB.FDB (DEVE SER GERADO AUTOMATICAMENTE PELO PROGRAMA)
+-- ATENCAO: QUESTIONAR SE O INIT.SQL NÃO É REDUNDANTE JÁ QUE A ESTRUTURA DO BANCO ESTÁ SENDO CRIADA DENTRO DO ARQUIVO CPPS

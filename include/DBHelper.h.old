@@ -1,0 +1,18 @@
+#ifndef DBHELPER_H
+#define DBHELPER_H
+
+#include <string>
+
+class DBHelper {
+public:
+    static bool createDataBase(); // ERREI AQUI CRIARBANCO DE DADOS
+    static bool executeSQL(const std::string& sqlFile);
+    static bool executeSQLCommand(const std::string& sqlCommand);
+    static bool insertReplicationPlan(const std::string& fonte, const std::string& destino, const std::string& agendamento, const std::string& tipo = "backup_restore");
+    static bool insertReplicationLog(const std::string& planoId, const std::string& status, const std::string& mensagem);
+    static void listReplicationPlans();
+    static void listReplicationLogs(const std::string& planoId = "");
+};
+
+#endif // DBHELPER_H
+

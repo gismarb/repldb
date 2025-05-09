@@ -1,44 +1,85 @@
-# Replicador Firebird CLI
+# repldb
 
-Um utilitário de linha de comando em C++ para gerenciar e executar replicações de banco de dados Firebird, voltado para ambientes Linux.
+**repldb** é uma ferramenta de linha de comando desenvolvida em C++ para gerenciar replicações de bancos de dados Firebird 3.0 via backup/restore. Ela suporta replicações locais e remotas, controle via banco intermediário (`repldb.fdb`) e agendamento via `cron`.
 
-## Estrutura
+---
 
-O projeto é composto por scripts de inicialização, código-fonte C++ e scripts SQL:
+## 📦 Requisitos
 
-```bash
-replicador-firebird/ 
-├── bin/ 
-│ └── replicadb # Binário final após compilação 
-├── build/ # Arquivos intermediários de build 
-├── db/ 
-│ └── init.sql # Script de criação das tabelas 
-├── data/ 
-│ └── replicadb.fdb # Banco intermediário de controle 
-├── include/ 
-│ ├── DBManager.h 
-│ └── Utils.h 
-├── src/ 
-│ ├── main.cpp 
-│ ├── DBManager.cpp 
-│ └── Utils.cpp 
-├── scripts/ 
-│ └── build.sh # Script de build (Linux) 
-├── Makefile 
-└── README.md
-```
+- Linux (server-side)
+- Firebird 3.0 instalado em `/opt/firebird`
+- Compilador C++17
+- Permissões para editar o `crontab`
 
+---
 
-## Pré-requisitos
-
-- Linux
-- [Firebird](https://firebirdsql.org) instalado e rodando
-- [IBPP](http://www.ibpp.org/) (biblioteca C++ para Firebird)
-- `g++` com suporte a C++11 ou superior
-
-## Build
-
-Execute:
+## 🛠️ Compilação
 
 ```bash
-./scripts/build.sh
+make
+
+
+Instalacao
+sudo make install
+
+🚀 Instalação
+bash
+Copy
+sudo make install
+
+🔧 Uso
+bash
+Copy
+repldb --init-db
+repldb --add-replica --fonte <path> --destino <path> [--schedule "<cron>"]
+repldb --remove-replica --id <id>
+repldb --list-replica
+repldb --run-replica --id <id>
+repldb --run-replica --all
+repldb --list-logs [--id <id>]
+
+🗃️ Estrutura do Banco de Controle (repldb.fdb)
+Tabela planos_replicacao: registros de replicações planejadas
+
+Tabela log_replicacao: registros de execuções realizadas
+
+Suporte para cron via marcador # REPLDB_JOB_<id>
+
+
+📑 Exemplo de Agendamento
+bash
+Copy
+repldb --add-replica --fonte /opt/firebird/data/master.fdb --destino /opt/firebird/data/replica.fdb --schedule "0 2 * * *"
+
+
+🔁 Execução Manual
+bash
+Copy
+repldb --run-replica --id 1
+
+
+🧹 Remover Plano
+bash
+Copy
+repldb --remove-replica --id 1
+
+
+📂 Estrutura de Diretórios
+makefile
+Copy
+include/        # Arquivos .h
+src/            # Arquivos .cpp
+db/             # Script SQL de estrutura
+scripts/        # Scripts auxiliares (cron)
+Makefile        # Compilação e instalação
+
+
+📌 Observações
+A base repldb.fdb não é replicada.
+
+Os caminhos de banco (fonte/destino) devem ser válidos e acessíveis.
+
+Todos os hosts devem usar Firebird 3.0, com mesma estrutura em /opt/firebird.
+
+
+

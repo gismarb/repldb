@@ -1,78 +1,61 @@
+#include "ArgumentParser.h"
 #include "DBManager.h"
 #include <iostream>
-#include <string>
-#include <fstream>
 
-void exibirAjuda() {
-    std::cout << "\nUso do repldb:\n"
-              << "  --add-replica --fonte <caminho> --destino <caminho>\n"
-              << "  --remove-replica --id <id>\n"
-              << "  --list-replica\n"
-              << "  --run-replica --id <id> | --all\n"
-              << "  --list-logs [--id <id>]\n"
-              << "  --init-db\n"
-              << "  --help\n";
+void printUsage() {
+    std::cout << "Uso:\n"
+              << "  repldb --init-db\n"
+              << "  repldb --add-replica --fonte <path> --destino <path> [--schedule \"<cron>\"]\n"
+              << "  repldb --remove-replica --id <id>\n"
+              << "  repldb --list-replica\n"
+              << "  repldb --run-replica --id <id>\n"
+              << "  repldb --run-replica --all\n"
+              << "  repldb --list-logs [--id <id>]\n"
+              << "  repldb --help\n";
 }
 
 int main(int argc, char* argv[]) {
-    if (argc < 2) {
-        exibirAjuda();
-        return 1;
+    ArgumentParser parser;
+    parser.parse(argc, argv);
+
+    if (parser.hasFlag("--help") || argc == 1) {
+        printUsage();
+        return 0;
     }
 
-    DBManager dbm;
-    std::string comando = argv[1];
+    DBManager manager;
 
     try {
-        if (comando == "--init-db") {
-            dbm.criarEstruturaBanco();
-        }
-        else if (comando == "--add-replica") {
-            std::string fonte, destino;
-            for (int i = 2; i < argc; i++) {
-                if (std::string(argv[i]) == "--fonte" && i + 1 < argc) fonte = argv[++i];
-                else if (std::string(argv[i]) == "--destino" && i + 1 < argc) destino = argv[++i];
-            }
-            dbm.adicionarPlano(fonte, destino);
-        }
-        else if (comando == "--remove-replica") {
-            int id = -1;
-            for (int i = 2; i < argc; i++) {
-                if (std::string(argv[i]) == "--id" && i + 1 < argc) id = std::stoi(argv[++i]);
-            }
-            dbm.removerPlano(id);
-        }
-        else if (comando == "--list-replica") {
-            dbm.listarPlanos();
-        }
-        else if (comando == "--run-replica") {
-            if (argc >= 3 && std::string(argv[2]) == "--all") {
-                dbm.executarTodosPlanos();
+        if (parser.hasFlag("--init-db")) {
+            manager.inicializarBanco();
+        } else if (parser.hasFlag("--add-replica")) {
+            std::string fonte = parser.getValue("--fonte");
+            std::string destino = parser.getValue("--destino");
+            std::string schedule = parser.getValue("--schedule");
+            manager.adicionarReplica(fonte, destino, schedule);
+        } else if (parser.hasFlag("--remove-replica")) {
+            std::string id = parser.getValue("--id");
+            manager.removerReplica(id);
+        } else if (parser.hasFlag("--list-replica")) {
+            manager.listarReplicas();
+        } else if (parser.hasFlag("--run-replica")) {
+            if (parser.hasFlag("--all")) {
+                manager.executarTodas();
             } else {
-                int id = -1;
-                for (int i = 2; i < argc; i++) {
-                    if (std::string(argv[i]) == "--id" && i + 1 < argc) id = std::stoi(argv[++i]);
-                }
-                dbm.executarPlano(id);
+                std::string id = parser.getValue("--id");
+                manager.executarReplica(id);
             }
-        }
-        else if (comando == "--list-logs") {
-            int id = -1;
-            for (int i = 2; i < argc; i++) {
-                if (std::string(argv[i]) == "--id" && i + 1 < argc) id = std::stoi(argv[++i]);
-            }
-            dbm.listarLogs(id);
-        }
-        else if (comando == "--help") {
-            exibirAjuda();
-        }
-        else {
-            std::cerr << "Comando desconhecido.\n";
+        } else if (parser.hasFlag("--list-logs")) {
+            std::string id = parser.getValue("--id");
+            manager.listarLogs(id);
+        } else {
+            printUsage();
         }
     } catch (const std::exception& e) {
-        std::cerr << "Erro: " << e.what() << "\n";
+        std::cerr << "Erro: " << e.what() << std::endl;
         return 1;
     }
 
     return 0;
 }
+

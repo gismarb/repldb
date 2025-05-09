@@ -10,7 +10,7 @@
 DBManager::DBManager() {}
 
 void DBManager::inicializarBanco() {
-    if (!DBHelper::criarBancoDeDados()) {
+    if (!DBHelper::createDataBase()) {
         std::cerr << "[repldb] Falha ao criar banco de dados.\n";
         return;
     }
