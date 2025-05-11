@@ -15,7 +15,7 @@ bool DBHelper::criarBancoDeDados() {
     }
 
     std::string cmd = "echo \"CREATE DATABASE '" + std::string(DB_PATH) + "';\" | "
-                      ISQL_CMD " -user SYSDBA -password masterkey -q";
+                      ISQL_CMD " -user SYSDBA -password repl@gis123 -q";
     std::cout << "[repldb] Criando banco com comando:\n" << cmd << "\n";
 
     return std::system(cmd.c_str()) == 0;
@@ -23,7 +23,7 @@ bool DBHelper::criarBancoDeDados() {
 
 bool DBHelper::executeSQL(const std::string& sqlFile) {
     std::ostringstream cmd;
-    cmd << ISQL_CMD << " -user SYSDBA -password masterkey " << DB_PATH << " -i " << sqlFile;
+    cmd << ISQL_CMD << " -user SYSDBA -password repl@gis123 " << DB_PATH << " -i " << sqlFile;
     return std::system(cmd.str().c_str()) == 0;
 }
 
@@ -61,19 +61,22 @@ bool DBHelper::insertReplicationLog(const std::string& planoId, const std::strin
 }
 
 void DBHelper::listReplicationPlans() {
-    std::ostringstream cmd;
-    cmd << ISQL_CMD << " -user SYSDBA -password masterkey " << DB_PATH
-        << " -q -e -c \"SELECT id, origem, destino, agendamento, tipo_replicacao FROM planos_replicacao;\"";
-    std::system(cmd.str().c_str());
+    std::string cmd = "echo \"SELECT id, origem, destino, agendamento, tipo_replicacao FROM planos_replicacao ORDER BY id;\" | "
+                      ISQL_CMD " -user SYSDBA -password masterkey " DB_PATH " -q -e";
+    std::system(cmd.c_str());
 }
 
+
 void DBHelper::listReplicationLogs(const std::string& planoId) {
-    std::ostringstream cmd;
-    cmd << ISQL_CMD << " -user SYSDBA -password masterkey " << DB_PATH
-        << " -q -e -c \"SELECT id, plano_id, inicio, fim, status, mensagem FROM log_replicacao";
+    std::ostringstream sql;
+    sql << "SELECT id, plano_id, inicio, fim, status, mensagem FROM log_replicacao";
     if (!planoId.empty()) {
-        cmd << " WHERE plano_id = " << planoId;
+        sql << " WHERE plano_id = " << planoId;
     }
-    cmd << ";\"";
+    sql << " ORDER BY inicio DESC;";
+
+    std::ostringstream cmd;
+    cmd << "echo \"" << sql.str() << "\" | "
+        << ISQL_CMD << " -user SYSDBA -password masterkey " << DB_PATH << " -q -e";
     std::system(cmd.str().c_str());
 }

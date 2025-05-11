@@ -6,6 +6,8 @@
 #include <sstream>
 #include <fstream> // ERREI AQUI
 #include <cstdlib>
+#include "Utils.h" // Utils::trim
+#include <algorithm> // necessario std::all_of 
 
 DBManager::DBManager() {}
 
@@ -32,16 +34,32 @@ void DBManager::adicionarReplica(const std::string& fonte, const std::string& de
         return;
     }
 
-    // Obter o último ID inserido
-    std::string getIdCmd = "/opt/firebird/bin/isql -user SYSDBA -password repl@gis123 /opt/firebird/data/repldb.fdb -q -c \"SELECT MAX(id) FROM planos_replicacao;\" > /tmp/repldb_last_id.txt";
+    // Obter o último ID inserido com segurança
+    std::string getIdCmd = "echo \"SELECT MAX(id) FROM planos_replicacao;\" | "
+                           "/opt/firebird/bin/isql -user SYSDBA -password repl@gis123 "
+                           "/opt/firebird/data/repldb.fdb -q > /tmp/repldb_last_id.txt";
     std::system(getIdCmd.c_str());
 
     std::ifstream file("/tmp/repldb_last_id.txt");
-    std::string id;
-    std::getline(file, id);
+    std::string line, id;
+    while (std::getline(file, line)) {
+        line = Utils::trim(line);
+        if (!line.empty() && std::all_of(line.begin(), line.end(), ::isdigit)) {
+            id = line;
+            break;
+        }
+    }
     file.close();
     std::remove("/tmp/repldb_last_id.txt");
 
+    if (!id.empty()) {
+        std::cout << "[repldb] Plano registrado com ID: " << id << "\n";
+    } else {
+        std::cerr << "[repldb] Falha ao identificar o ID do plano criado.\n";
+        return;
+    }
+
+    // Se houver agendamento, cria no cron
     if (!agendamento.empty()) {
         std::ostringstream comando;
         comando << "/opt/repldb/bin/repldb --run-replica --id " << id;
@@ -51,8 +69,6 @@ void DBManager::adicionarReplica(const std::string& fonte, const std::string& de
             std::cout << "[repldb] Agendamento criado com sucesso.\n";
         }
     }
-
-    std::cout << "[repldb] Plano registrado com ID: " << id << "\n";
 }
 
 void DBManager::removerReplica(const std::string& id) {
@@ -79,26 +95,50 @@ void DBManager::listarLogs(const std::string& id) {
 }
 
 void DBManager::executarReplica(const std::string& id) {
-    std::ostringstream cmd;
-    cmd << "SELECT origem, destino FROM planos_replicacao WHERE id = " << id << ";";
+    std::ostringstream sql;
+    sql << "SELECT origem, destino FROM planos_replicacao WHERE id = " << id << ";";
 
     std::string tmpFile = "/tmp/repldb_exec_" + id + ".sql";
     std::ofstream out(tmpFile);
-    out << cmd.str();
+    out << sql.str();
     out.close();
 
-    std::string extractCmd = "/opt/firebird/bin/isql -user SYSDBA -password repl@gis123 /opt/firebird/data/repldb.fdb -i " + tmpFile + " > /tmp/repldb_paths.txt";
+    std::string extractCmd = "/opt/firebird/bin/isql -user SYSDBA -password repl@gis123 "
+                             "/opt/firebird/data/repldb.fdb -i " + tmpFile + " > /tmp/repldb_paths.txt";
     std::system(extractCmd.c_str());
     std::remove(tmpFile.c_str());
 
     std::ifstream result("/tmp/repldb_paths.txt");
-    std::string origem, destino;
-    std::getline(result, origem);
-    std::getline(result, destino);
+    std::string linha, origem, destino;
+    while (std::getline(result, linha)) {
+        linha = Utils::trim(linha);
+        if (!linha.empty() && linha.find('/') != std::string::npos) {
+            std::istringstream iss(linha);
+            std::string token;
+            while (iss >> token) {
+                if (token[0] == '/') {
+                    if (origem.empty()) origem = token;
+                    else if (destino.empty()) {
+                        destino = token;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     result.close();
     std::remove("/tmp/repldb_paths.txt");
 
+    if (origem.empty() || destino.empty()) {
+        std::cerr << "[repldb] Erro: não foi possível obter origem e destino do plano " << id << ".\n";
+        DBHelper::insertReplicationLog(id, "ERRO", "Origem ou destino ausente ou inválido.");
+        return;
+    }
+
+    std::cout << "[repldb] Executando backup do plano " << id << "...\n";
     if (Replicator::executarBackup(origem, "/tmp/repldb_backup.fbk")) {
+        std::cout << "[repldb] Executando restore para " << destino << "...\n";
         if (Replicator::executarRestore("/tmp/repldb_backup.fbk", destino)) {
             DBHelper::insertReplicationLog(id, "SUCESSO", "Replicação realizada com sucesso.");
         } else {
@@ -107,20 +147,26 @@ void DBManager::executarReplica(const std::string& id) {
     } else {
         DBHelper::insertReplicationLog(id, "ERRO", "Falha ao gerar backup.");
     }
+
+    std::remove("/tmp/repldb_backup.fbk");
 }
 
+
+
 void DBManager::executarTodas() {
-    std::string cmd = "/opt/firebird/bin/isql -user SYSDBA -password repl@gis123 /opt/firebird/data/repldb.fdb -q -e -c \"SELECT id FROM planos_replicacao;\" > /tmp/repldb_all_ids.txt";
+    std::string cmd = "echo \"SELECT id FROM planos_replicacao;\" | "
+                      "/opt/firebird/bin/isql -user SYSDBA -password masterkey "
+                      "/opt/firebird/data/repldb.fdb -q > /tmp/repldb_all_ids.txt";
     std::system(cmd.c_str());
 
     std::ifstream file("/tmp/repldb_all_ids.txt");
-    std::string id;
-    while (std::getline(file, id)) {
-        if (!id.empty() && isdigit(id[0])) {
-            executarReplica(id);
+    std::string linha;
+    while (std::getline(file, linha)) {
+        linha = Utils::trim(linha);
+        if (!linha.empty() && std::all_of(linha.begin(), linha.end(), ::isdigit)) {
+            executarReplica(linha);
         }
     }
     file.close();
     std::remove("/tmp/repldb_all_ids.txt");
 }
-
