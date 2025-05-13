@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# Temp Folders Older versions
+.old
+.old2-Simple_but_Functional
+.old3
+.old4
