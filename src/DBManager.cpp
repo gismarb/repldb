@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include "Utils.h" // Utils::trim
 #include <algorithm> // necessario std::all_of 
+#include <unistd.h>  // Necessário para readlink()
 
 DBManager::DBManager() {}
 
@@ -25,7 +26,6 @@ void DBManager::inicializarBanco() {
     }
 } // ERREI AQUI, INCLUINDO ESTRUTURA PARA CRIACAO DO BANCO INICIALMENTE
 
-
 void DBManager::adicionarReplica(const std::string& fonte, const std::string& destino, const std::string& agendamento) {
     std::cout << "[repldb] Adicionando plano de replicação...\n";
 
@@ -34,9 +34,9 @@ void DBManager::adicionarReplica(const std::string& fonte, const std::string& de
         return;
     }
 
-    // Obter o último ID inserido com segurança
+    // Obter o último ID inserido corretamente
     std::string getIdCmd = "echo \"SELECT MAX(id) FROM planos_replicacao;\" | "
-                           "/opt/firebird/bin/isql -user SYSDBA -password repl@gis123 "
+                           "/opt/firebird/bin/isql -user SYSDBA -password masterkey "
                            "/opt/firebird/data/repldb.fdb -q > /tmp/repldb_last_id.txt";
     std::system(getIdCmd.c_str());
 
@@ -52,17 +52,22 @@ void DBManager::adicionarReplica(const std::string& fonte, const std::string& de
     file.close();
     std::remove("/tmp/repldb_last_id.txt");
 
-    if (!id.empty()) {
-        std::cout << "[repldb] Plano registrado com ID: " << id << "\n";
-    } else {
+    if (id.empty()) {
         std::cerr << "[repldb] Falha ao identificar o ID do plano criado.\n";
         return;
     }
 
-    // Se houver agendamento, cria no cron
+    std::cout << "[repldb] Plano registrado com ID: " << id << "\n";
+
+    // Se houver agendamento, cria no cron com caminho dinâmico
     if (!agendamento.empty()) {
+        char realPath[1024];
+        ssize_t count = readlink("/proc/self/exe", realPath, sizeof(realPath));
+        std::string execPath = (count != -1) ? std::string(realPath, count) : "./repldb";
+
         std::ostringstream comando;
-        comando << "/opt/repldb/bin/repldb --run-replica --id " << id;
+        comando << execPath << " --run-replica --id " << id;
+
         if (!CronHelper::addCronJob(agendamento, comando.str(), id)) {
             std::cerr << "[repldb] Falha ao agendar tarefa via cron.\n";
         } else {
@@ -72,17 +77,30 @@ void DBManager::adicionarReplica(const std::string& fonte, const std::string& de
 }
 
 void DBManager::removerReplica(const std::string& id) {
-    std::ostringstream sql;
-    sql << "DELETE FROM planos_replicacao WHERE id = " << id << ";";
+    std::cout << "[repldb] Removendo plano ID " << id << "...\n";
 
-    if (!DBHelper::executeSQLCommand(sql.str())) {
-        std::cerr << "[repldb] Erro ao remover plano de replicação.\n";
-        return;
+    // Caminho dinâmico do binário atual
+    char realPath[1024];
+    ssize_t count = readlink("/proc/self/exe", realPath, sizeof(realPath));
+    std::string execPath = (count != -1) ? std::string(realPath, count) : "./repldb";
+
+    // Remover agendamento do cron
+    if (!CronHelper::removeCronJob(execPath, id)) {
+        std::cerr << "[repldb] Aviso: nenhuma tarefa agendada foi encontrada para o ID " << id << ".\n";
+    } else {
+        std::cout << "[repldb] Agendamento removido com sucesso.\n";
     }
 
-    CronHelper::removeCronJob(id);
-    std::cout << "[repldb] Plano removido e agendamento cancelado (se existia).\n";
+    // Comando para remover plano do banco
+    std::ostringstream sql;
+    sql << "DELETE FROM planos_replicacao WHERE id = " << id << ";";
+    if (DBHelper::executeSQLCommand(sql.str())) {
+        std::cout << "[repldb] Plano excluído com sucesso.\n";
+    } else {
+        std::cerr << "[repldb] Erro ao remover plano do banco.\n";
+    }
 }
+
 
 void DBManager::listarReplicas() {
     std::cout << "[repldb] Listando planos de replicação...\n";
