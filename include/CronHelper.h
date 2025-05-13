@@ -6,7 +6,7 @@
 class CronHelper {
 public:
     static bool addCronJob(const std::string& schedule, const std::string& command, const std::string& jobId);
-    static bool removeCronJob(const std::string& jobId);
+    static bool removeCronJob(const std::string& execPath, const std::string& jobId);
     static bool cronJobExists(const std::string& jobId);
 };
 
