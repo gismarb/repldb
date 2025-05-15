@@ -8,6 +8,8 @@
 #define DB_PATH "/opt/firebird/data/repldb.fdb"
 #define ISQL_CMD "/opt/firebird/bin/isql"
 
+// PENDENTE REFATORACAO (LINGUA)
+
 bool DBHelper::criarBancoDeDados() {
     if (std::filesystem::exists(DB_PATH)) {
         std::cout << "[repldb] Banco já existe: " << DB_PATH << "\n";
@@ -62,7 +64,7 @@ bool DBHelper::insertReplicationLog(const std::string& planoId, const std::strin
 
 void DBHelper::listReplicationPlans() {
     std::string cmd = "echo \"SELECT id, origem, destino, agendamento, tipo_replicacao FROM planos_replicacao ORDER BY id;\" | "
-                      ISQL_CMD " -user SYSDBA -password masterkey " DB_PATH " -q -e";
+                      ISQL_CMD " -user SYSDBA -password repl@gis123 " DB_PATH " -q -e";
     std::system(cmd.c_str());
 }
 
@@ -77,6 +79,6 @@ void DBHelper::listReplicationLogs(const std::string& planoId) {
 
     std::ostringstream cmd;
     cmd << "echo \"" << sql.str() << "\" | "
-        << ISQL_CMD << " -user SYSDBA -password masterkey " << DB_PATH << " -q -e";
+        << ISQL_CMD << " -user SYSDBA -password repl@gis123 " << DB_PATH << " -q -e";
     std::system(cmd.str().c_str());
 }

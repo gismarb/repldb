@@ -3,6 +3,8 @@
 
 #include <string>
 
+// PENDENTE REFATORACAO (LINGUA)
+
 class DBManager {
 public:
     DBManager();

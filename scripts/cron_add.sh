@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# PENDENTE REFATORACAO (LINGUA)
+
 ID=$1
 CRON_EXPR=$2
 COMANDO=$3

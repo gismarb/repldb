@@ -4,6 +4,8 @@
 #include <sstream>
 #include <filesystem>
 
+// PENDENTE REFATORACAO (LINGUA)
+
 namespace fs = std::filesystem;
 
 bool Replicator::executarBackup(const std::string& origem, const std::string& destinoTmp) {

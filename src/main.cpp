@@ -2,16 +2,18 @@
 #include "DBManager.h"
 #include <iostream>
 
+// PENDENTE REFATORACAO (LINGUA)
+
 void printUsage() {
     std::cout << "Uso:\n"
-              << "  repldb --init-db\n"
-              << "  repldb --add-replica --fonte <path> --destino <path> [--schedule \"<cron>\"]\n"
-              << "  repldb --remove-replica --id <id>\n"
-              << "  repldb --list-replica\n"
-              << "  repldb --run-replica --id <id>\n"
-              << "  repldb --run-replica --all\n"
-              << "  repldb --list-logs [--id <id>]\n"
-              << "  repldb --help\n";
+              << "     repldb --init-db\n"
+              << "     repldb --add-replica --fonte <path> --destino <path> [--schedule \"<cron>\"]\n"
+              << "     repldb --remove-replica --id <id>\n"
+              << "     repldb --list-replica\n"
+              << "     repldb --run-replica --id <id>\n"
+              << "     repldb --run-replica --all\n"
+              << "     repldb --list-logs [--id <id>]\n"
+              << "     repldb --help\n";
 }
 
 int main(int argc, char* argv[]) {

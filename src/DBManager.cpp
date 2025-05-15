@@ -10,6 +10,8 @@
 #include <algorithm> // necessario std::all_of 
 #include <unistd.h>  // Necessário para readlink()
 
+// PENDENTE REFATORACAO (LINGUA)
+
 DBManager::DBManager() {}
 
 void DBManager::inicializarBanco() {
@@ -36,7 +38,7 @@ void DBManager::adicionarReplica(const std::string& fonte, const std::string& de
 
     // Obter o último ID inserido corretamente
     std::string getIdCmd = "echo \"SELECT MAX(id) FROM planos_replicacao;\" | "
-                           "/opt/firebird/bin/isql -user SYSDBA -password masterkey "
+                           "/opt/firebird/bin/isql -user SYSDBA -password repl@gis123 "
                            "/opt/firebird/data/repldb.fdb -q > /tmp/repldb_last_id.txt";
     std::system(getIdCmd.c_str());
 
@@ -173,7 +175,7 @@ void DBManager::executarReplica(const std::string& id) {
 
 void DBManager::executarTodas() {
     std::string cmd = "echo \"SELECT id FROM planos_replicacao;\" | "
-                      "/opt/firebird/bin/isql -user SYSDBA -password masterkey "
+                      "/opt/firebird/bin/isql -user SYSDBA -password repl@gis123 "
                       "/opt/firebird/data/repldb.fdb -q > /tmp/repldb_all_ids.txt";
     std::system(cmd.c_str());
 

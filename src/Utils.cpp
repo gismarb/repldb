@@ -2,6 +2,8 @@
 #include <cctype>
 #include <algorithm>
 
+// PENDENTE REFATORACAO (LINGUA)
+
 bool Utils::isNumeric(const std::string& str) {
     return !str.empty() && std::all_of(str.begin(), str.end(), ::isdigit);
 }

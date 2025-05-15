@@ -5,6 +5,8 @@
 #include <iostream>
 #include "Utils.h" // para uso do trim()
 
+// PENDENTE REFATORACAO (LINGUA)
+
 const std::string CRON_MARKER_PREFIX = "# REPLDB_JOB_";
 
 bool CronHelper::addCronJob(const std::string& schedule, const std::string& command, const std::string& jobId) {

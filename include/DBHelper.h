@@ -3,6 +3,8 @@
 
 #include <string>
 
+// PENDENTE REFATORACAO (LINGUA)
+
 class DBHelper {
 public:
     static bool criarBancoDeDados(); // <-- Adicionado

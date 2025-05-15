@@ -1,5 +1,7 @@
 # Makefile para compilar, instalar e gerenciar o projeto repldb
 
+# PENDENTE REFATORACAO (LINGUA)
+
 # Compilador e flags
 CXX = g++
 CXXFLAGS = -std=c++17 -Wall -Iinclude

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# PENDENTE REFATORACAO (LINGUA)
+
 ID=$1
 
 if [[ -z "$ID" ]]; then

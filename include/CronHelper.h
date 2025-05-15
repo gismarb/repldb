@@ -3,6 +3,8 @@
 
 #include <string>
 
+// PENDENTE REFATORACAO (LINGUA)
+
 class CronHelper {
 public:
     static bool addCronJob(const std::string& schedule, const std::string& command, const std::string& jobId);

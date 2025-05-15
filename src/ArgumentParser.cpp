@@ -1,5 +1,7 @@
 #include "ArgumentParser.h"
 
+// PENDENTE REFATORACAO (LINGUA)
+
 ArgumentParser::ArgumentParser() {}
 
 void ArgumentParser::parse(int argc, char* argv[]) {

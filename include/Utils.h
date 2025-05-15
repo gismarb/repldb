@@ -3,6 +3,8 @@
 
 #include <string>
 
+// PENDENTE REFATORACAO (LINGUA)
+
 class Utils {
 public:
     static bool isNumeric(const std::string& str);

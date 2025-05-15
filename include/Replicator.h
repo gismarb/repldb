@@ -3,6 +3,8 @@
 
 #include <string>
 
+// PENDENTE REFATORACAO (LINGUA)
+
 class Replicator {
 public:
     static bool executarBackup(const std::string& origem, const std::string& destinoTmp);
