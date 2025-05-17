@@ -17,12 +17,34 @@ bool Replicator::executarBackup(const std::string& origem, const std::string& de
     return std::system(cmd.str().c_str()) == 0;
 }
 
-bool Replicator::executarRestore(const std::string& destinoTmp, const std::string& destinoFinal) {
-    std::ostringstream cmd;
-    cmd << "/opt/firebird/bin/gbak -c -replace_database -user SYSDBA -password repl@gis123 "
-        << destinoTmp << " " << destinoFinal;
+bool Replicator::executarRestore(const std::string& origem, const std::string& destino) {
+    std::cout << "[repldb] Executando replicação de: " << origem << " → " << destino << "\n";
 
-    std::cout << "[repldb] Executando restore: " << cmd.str() << std::endl;
+    std::ostringstream cmd;
+
+    size_t pos = destino.find(':');
+    if (pos != std::string::npos && destino.find('/') > pos) {
+        // Destino remoto detectado
+        std::string hostRemoto = destino.substr(0, pos);
+        std::string caminhoRemoto = destino.substr(pos + 1);
+
+        std::cout << "[repldb] Modo remoto ativado via Service Manager: " << hostRemoto << "\n";
+
+        cmd << "/opt/firebird/bin/gbak -b -se localhost:service_mgr -g "
+            << "-user SYSDBA -password repl@gis123 "
+            << origem << " stdout | "
+            << "/opt/firebird/bin/gbak -rep -se " << hostRemoto << ":service_mgr "
+            << "-user SYSDBA -password repl@gis123 "
+            << "stdin " << caminhoRemoto;
+    } else {
+        // Replicação local padrão
+        cmd << "/opt/firebird/bin/gbak -c -replace_database "
+            << "-user SYSDBA -password repl@gis123 "
+            << origem << " " << destino;
+    }
+
+    std::cout << "[repldb] Comando: " << cmd.str() << "\n";
+
     return std::system(cmd.str().c_str()) == 0;
 }
 

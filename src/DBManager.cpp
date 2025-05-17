@@ -103,7 +103,6 @@ void DBManager::removerReplica(const std::string& id) {
     }
 }
 
-
 void DBManager::listarReplicas() {
     std::cout << "[repldb] Listando planos de replicação...\n";
     DBHelper::listReplicationPlans();
@@ -115,63 +114,75 @@ void DBManager::listarLogs(const std::string& id) {
 }
 
 void DBManager::executarReplica(const std::string& id) {
-    std::ostringstream sql;
-    sql << "SELECT origem, destino FROM planos_replicacao WHERE id = " << id << ";";
+    // Gera arquivo de input SQL para isql
+    std::ofstream sqlfile("/tmp/repldb_replica_input.sql");
+    sqlfile << "SET LIST ON;\n";
+    sqlfile << "SELECT origem, destino FROM planos_replicacao WHERE id = " << id << ";\n";
+    sqlfile << "QUIT;\n";
+    sqlfile.close();
 
-    std::string tmpFile = "/tmp/repldb_exec_" + id + ".sql";
-    std::ofstream out(tmpFile);
-    out << sql.str();
-    out.close();
+    // Executa isql com saída redirecionada para arquivo
+    std::ostringstream cmd;
+    cmd << "/opt/firebird/bin/isql -user SYSDBA -password repl@gis123 /opt/firebird/data/repldb.fdb "
+        << "-q -nod -i /tmp/repldb_replica_input.sql -o /tmp/repldb_replica_out.txt";
+    std::system(cmd.str().c_str());
 
-    std::string extractCmd = "/opt/firebird/bin/isql -user SYSDBA -password repl@gis123 "
-                             "/opt/firebird/data/repldb.fdb -i " + tmpFile + " > /tmp/repldb_paths.txt";
-    std::system(extractCmd.c_str());
-    std::remove(tmpFile.c_str());
+    std::remove("/tmp/repldb_replica_input.sql");
 
-    std::ifstream result("/tmp/repldb_paths.txt");
-    std::string linha, origem, destino;
-    while (std::getline(result, linha)) {
-        linha = Utils::trim(linha);
-        if (!linha.empty() && linha.find('/') != std::string::npos) {
-            std::istringstream iss(linha);
-            std::string token;
-            while (iss >> token) {
-                if (token[0] == '/') {
-                    if (origem.empty()) origem = token;
-                    else if (destino.empty()) {
-                        destino = token;
-                        break;
-                    }
-                }
-            }
+    // Lê os dados de origem e destino da saída
+    std::ifstream file("/tmp/repldb_replica_out.txt");
+    std::string line, origem, destino;
+
+    while (std::getline(file, line)) {
+        line = Utils::trim(line);
+        if (line.find("ORIGEM") == 0) {
+            origem = Utils::trim(line.substr(6));
+        } else if (line.find("DESTINO") == 0) {
+            destino = Utils::trim(line.substr(7));
         }
     }
 
-    result.close();
-    std::remove("/tmp/repldb_paths.txt");
+    file.close();
+    std::remove("/tmp/repldb_replica_out.txt");
 
     if (origem.empty() || destino.empty()) {
         std::cerr << "[repldb] Erro: não foi possível obter origem e destino do plano " << id << ".\n";
-        DBHelper::insertReplicationLog(id, "ERRO", "Origem ou destino ausente ou inválido.");
+        DBHelper::registrarLog(id, "ERRO", "Origem ou destino ausente ou inválido.");
         return;
     }
 
     std::cout << "[repldb] Executando backup do plano " << id << "...\n";
-    if (Replicator::executarBackup(origem, "/tmp/repldb_backup.fbk")) {
-        std::cout << "[repldb] Executando restore para " << destino << "...\n";
-        if (Replicator::executarRestore("/tmp/repldb_backup.fbk", destino)) {
-            DBHelper::insertReplicationLog(id, "SUCESSO", "Replicação realizada com sucesso.");
-        } else {
-            DBHelper::insertReplicationLog(id, "ERRO", "Falha ao restaurar a réplica.");
-        }
-    } else {
-        DBHelper::insertReplicationLog(id, "ERRO", "Falha ao gerar backup.");
+    std::string backupTmp = "/tmp/repldb_backup.fbk";
+
+    if (!Replicator::executarBackup(origem, backupTmp)) {
+        std::cerr << "[repldb] Falha ao gerar backup.\n";
+        DBHelper::registrarLog(id, "ERRO", "Falha ao gerar backup.");
+        return;
     }
 
-    std::remove("/tmp/repldb_backup.fbk");
+    std::cout << "[repldb] Executando restore...\n";
+
+    // Detecta se é remoto
+    bool isRemoto = destino.find(':') != std::string::npos && destino.find('/') > destino.find(':');
+    bool sucessoRestore = false;
+
+    if (isRemoto) {
+        // usa a origem original
+        sucessoRestore = Replicator::executarRestore(origem, destino);
+    } else {
+        // usa o backup gerado
+        sucessoRestore = Replicator::executarRestore(backupTmp, destino);
+    }
+
+    if (!sucessoRestore) {
+        std::cerr << "[repldb] Falha ao restaurar.\n";
+        DBHelper::registrarLog(id, "ERRO", "Falha ao restaurar.");
+        return;
+    }
+
+    DBHelper::registrarLog(id, "SUCESSO", "Replicação concluída com sucesso.");
+    std::cout << "[repldb] Replicação do plano " << id << " concluída com sucesso.\n";
 }
-
-
 
 void DBManager::executarTodas() {
     std::string cmd = "echo \"SELECT id FROM planos_replicacao;\" | "

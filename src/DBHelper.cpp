@@ -82,3 +82,12 @@ void DBHelper::listReplicationLogs(const std::string& planoId) {
         << ISQL_CMD << " -user SYSDBA -password repl@gis123 " << DB_PATH << " -q -e";
     std::system(cmd.str().c_str());
 }
+
+bool DBHelper::registrarLog(const std::string& planoId, const std::string& status, const std::string& mensagem) {
+    std::ostringstream sql;
+    sql << "INSERT INTO log_replicacao (plano_id, status, mensagem) VALUES ("
+        << planoId << ", '" << status << "', '" << mensagem << "');";
+
+    return DBHelper::executeSQLCommand(sql.str());
+}
+

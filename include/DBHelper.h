@@ -14,6 +14,8 @@ public:
     static bool insertReplicationLog(const std::string& planoId, const std::string& status, const std::string& mensagem);
     static void listReplicationPlans();
     static void listReplicationLogs(const std::string& planoId = "");
+    static bool registrarLog(const std::string& planoId, const std::string& status, const std::string& mensagem);
+
 };
 
 #endif // DBHELPER_H
