@@ -1,0 +1,9 @@
+Uso:
+     repldb --init-db
+     repldb --add-replica --fonte <path> --destino <path> [--schedule "<cron>"]
+     repldb --remove-replica --id <id>
+     repldb --list-replica
+     repldb --run-replica --id <id>
+     repldb --run-replica --all
+     repldb --list-logs [--id <id>]
+     repldb --help

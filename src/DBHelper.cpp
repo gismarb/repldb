@@ -75,7 +75,7 @@ void DBHelper::listReplicationLogs(const std::string& planoId) {
     if (!planoId.empty()) {
         sql << " WHERE plano_id = " << planoId;
     }
-    sql << " ORDER BY inicio DESC;";
+    sql << " ORDER BY inicio ASC;";
 
     std::ostringstream cmd;
     cmd << "echo \"" << sql.str() << "\" | "
