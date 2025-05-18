@@ -58,10 +58,14 @@ Suporte para cron via marcador `# REPLDB_JOB_<id>`
 
 
 
-## Exemplo de Agendamento
+## Exemplos de Agendamentos
 
 ```bash
+# Agendamento local
 repldb --add-replica --fonte /opt/firebird/data/master.fdb --destino /opt/firebird/data/replica.fdb --schedule "0 2 * * *"
+
+# Agendamento remoto
+repldb --add-replica --fonte /opt/firebird/data/master.fdb --destino 192.168.1.54:/opt/firebird/data/replica.fdb --schedule "0 2 * * *"
 ```
 
 
@@ -69,7 +73,11 @@ repldb --add-replica --fonte /opt/firebird/data/master.fdb --destino /opt/firebi
 ## Execução Manual
 
 ```bash
+# Execução manual de um único plano selecionado
 repldb --run-replica --id 1
+
+# Execução manual de todos os planos cadastrados
+repldb --run-replica --all
 ```
 
 
@@ -85,12 +93,38 @@ repldb --remove-replica --id 1
 ## Estrutura de Diretórios
 
 ```bash
-makefile
-include/        # Arquivos .h
-src/            # Arquivos .cpp
-db/             # Script SQL de estrutura
-scripts/        # Scripts auxiliares (cron)
-Makefile        # Compilação e instalação
+repldb
+├── db                      	# Script SQL (estrutura do banco de dados de replicação)
+│   └── init.sql
+├── doc                     	# Documentos de referência para o projeto 
+│   ├── man.txt
+│   ├── title.txt
+│   ├── TODO.txt
+│   ├── tree_d.txt
+│   └── tree.txt
+├── include                     # Arquivos de cabeçalho (header files)
+│   ├── ArgumentParser.h
+│   ├── CronHelper.h
+│   ├── DBHelper.h
+│   ├── DBManager.h
+│   ├── Replicator.h
+│   └── Utils.h
+├── LICENSE                     # Temos de licenciamento do uso do conteúdo deste projeto
+├── Makefile                    # Makefile com instruções para compilar, executar, reconstruir e instalar projeto
+├── README.md                   # Mini documentação sobre o projeto
+├── scripts                     # Scripts bash para auxílio nas transações do projeto
+│   ├── cron_add.sh
+│   └── cron_remove.sh
+└── src                     	# Módulos do progama (implementações)
+    ├── ArgumentParser.cpp
+    ├── CronHelper.cpp
+    ├── DBHelper.cpp
+    ├── DBManager.cpp
+    ├── main.cpp
+    ├── Replicator.cpp
+    └── Utils.cpp
+
+
 ```
 
 
