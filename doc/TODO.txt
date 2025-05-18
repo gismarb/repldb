@@ -1,0 +1,29 @@
+[ ] -- Pensar em uma forma de os artefatos criados pertecerem ao usuário "firebird" (ao menos ao final do projeto quando ele será instalado na pasta do Firebird);
+[ ] -- O passo acima deve contemplar tantos arquivos de planejamento, quanto de banco de dados;
+[X] -- Implementar o tratamento de linha de comando (tratamento para que, caso o comando não esteja completo, não execute a ação e lance um erro);
+[ ] -- Criar um "README.md" detalhado, com exemplos de utilização (em PT-BR);
+[ ] -- Criar uma arquivo "help.txt" seguindo a idéia de uma aquivo de ajuda "padrão Linux CLI" - criar em /util/help.txt (pense em criar uma classe Help.h/cpp);
+[ ] -- Criar check-list com necessidade de istalação (server-side e client-side) - lembra tanto dos requisitos de SO, BD e C++;
+[ ] -- O README deve ser apenas uma prévia do manual;
+[ ] -- Em ./doc/ deverá ser criado um manual completo (com imagens, descrições detalhadas etc);
+[X] -- Na estrutura base do projeto, não aparece os arquivos /include/DBManager.h e /src/DBManager.cpp
+[X] -- ATENÇÃO: LEMBRAR DE APAGAR O ARQUIVO REPLDB.FDB (DEVE SER GERADO AUTOMATICAMENTE PELO PROGRAMA)
+[X] -- ATENÇÃO: VERIFICAR SE O INIT.SQL NÃO É REDUNDANTE JÁ QUE A ESTRUTURA DO BANCO ESTÁ SENDO CRIADA DENTRO DO ARQUIVO CPPS (defasado - foi mudado a forma)
+[X] -- ATENÇÃO: no caso de estar utilizando VMs, lembrar de corrigir o date time: sudo timedatectl set-timezone America/Sao_Paulo
+[X] -- Se o backup fosse feito na mão (apenas descrição de  como as coisas podem ser feitas manualmente):
+    01 sudo /opt/firebird/bin/gbak -b /opt/firebird/data/players.fdb /opt/firebird/data/players.fbk
+    02 sudo chown firebird:firebird /opt/firebird//data/players.fbk
+    03 sudo /opt/firebird/bin/gbak -rep /opt/firebird/data/players.fbk 192.168.1.54:/opt/firebird/data/players-replica01.fdb -user sysdba -pass repl@gis123
+
+[X] -- Se o backup for feito de um lado (local) e restaurado no outro (remoto) - (apenas descrição de como as coisas podem ser feitas manualmente):
+    01 sudo /opt/firebird/bin/gbak -b -se 192.168.1.53:service_mgr -g -user sysdba -pass repl@gis123 /opt/firebird/data/players.fdb stdout | /opt/firebird/bin/gbak -rep -se 192.168.1.54:service_mgr -user sysdba -pass repl@gis123 stdin /opt/firebird/data/players-replica01.fdb
+[ ] -- Lembrar de colocar no manual:
+    01 Prerequisitos: intalação do Firebird (em /opt/firebird ...); se remoto, criação da pasta "/op/firebird/data"; libs para utilizar o Firebird; ferramentas para instalação e compilação do projeto (g++, gcc, make etc);
+    02 Lembrar que, ao menos um banco de dados deverá ser criado (para que seja replicado);
+    03 Ressaltar que, nesta versão de MVP, o projeto só contempla os locais pré-definidos para os artefatos (mas o banco de dados de replicação "repldb.fdb" já está sendo gerado em /opt/firebird/data/ , mas o ./repldb ainda não - mas pode ser copiado para o local /opt/firebird/bin/. Neste caso, lembrar que, se o executável foi mudado de local, os planos de execução agendados via CRON deverão ser refeitos);
+    04 Forma de colocar o exaecutável em /opt/firebird/bin;
+[ ] -- No README, colocar um tabela com as features propostas, futuras, assim como limitações do projeto
+[ ] -- Banco de dados "repldb.fdb", na tabela "LOG_REPLICACAO" não está funcionando o processo de inserção do campo "FIM", quando a replicação é finalizada (caso seja algo complicado, fechar o MVP sem essa feature - mas retornar, antes de distribuir no Github);
+[ ] -- O processo de instalação do ./repldb está funcional - mas tem que ser executado como "sudo" (na verdade isso é importante: tudo deve ser executado como sudo);
+[ ] -- LEMBRAR DE REVISAR TUDO ANTES DE ESCREVER O README
+
