@@ -1,7 +1,7 @@
 repldb
-├── db                      # Script SQL (estrutura do banco de dados de replicação)
+├── db                          # Script SQL (estrutura do banco de dados de replicação)
 │   └── init.sql
-├── doc                     # Documentos de referência para o projeto 
+├── doc                         # Documentos de referência para o projeto 
 │   ├── man.txt
 │   ├── title.txt
 │   ├── TODO.txt
@@ -15,12 +15,12 @@ repldb
 │   ├── Replicator.h
 │   └── Utils.h
 ├── LICENSE                     # Temos de licenciamento do uso do conteúdo deste projeto
-├── Makefile                        # Makefile com instruções para compilar, executar, reconstruir e instalar projeto
-├── README.md                       # Mini documentação sobre o projeto
+├── Makefile                    # Makefile com instruções para compilar, executar, reconstruir e instalar projeto
+├── README.md                   # Mini documentação sobre o projeto
 ├── scripts                     # Scripts bash para auxílio nas transações do projeto
 │   ├── cron_add.sh
 │   └── cron_remove.sh
-└── src                     # Módulos do progama (implementações)
+└── src                         # Módulos do progama (implementações)
     ├── ArgumentParser.cpp
     ├── CronHelper.cpp
     ├── DBHelper.cpp
