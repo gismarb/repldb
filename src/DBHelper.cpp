@@ -83,11 +83,11 @@ void DBHelper::listReplicationLogs(const std::string& planoId) {
     std::system(cmd.str().c_str());
 }
 
+// Codigo corrigido - data enviada, no final, via timestamp
 bool DBHelper::registrarLog(const std::string& planoId, const std::string& status, const std::string& mensagem) {
     std::ostringstream sql;
-    sql << "INSERT INTO log_replicacao (plano_id, status, mensagem) VALUES ("
-        << planoId << ", '" << status << "', '" << mensagem << "');";
-
+    sql << "INSERT INTO log_replicacao (plano_id, status, mensagem, fim) VALUES ("
+        << planoId << ", '" << status << "', '" << mensagem << "', CURRENT_TIMESTAMP);";
     return DBHelper::executeSQLCommand(sql.str());
 }
 

@@ -21,9 +21,10 @@ bool Replicator::executarRestore(const std::string& origem, const std::string& d
     std::cout << "[repldb] Executando replicação de: " << origem << " → " << destino << "\n";
 
     std::ostringstream cmd;
-
     size_t pos = destino.find(':');
-    if (pos != std::string::npos && destino.find('/') > pos) {
+    bool isRemoto = (pos != std::string::npos && destino.find('/') > pos);
+
+    if (isRemoto) {
         // Destino remoto detectado
         std::string hostRemoto = destino.substr(0, pos);
         std::string caminhoRemoto = destino.substr(pos + 1);
@@ -44,8 +45,21 @@ bool Replicator::executarRestore(const std::string& origem, const std::string& d
     }
 
     std::cout << "[repldb] Comando: " << cmd.str() << "\n";
+    int result = std::system(cmd.str().c_str());
 
-    return std::system(cmd.str().c_str()) == 0;
+    // Se for local e o restore foi bem-sucedido, ajusta a permissão
+    if (!isRemoto && result == 0) {
+        std::ostringstream chownCmd;
+        chownCmd << "chown firebird:firebird " << destino;
+        int chownRet = std::system(chownCmd.str().c_str());
+        if (chownRet != 0) {
+            std::cerr << "[repldb] Aviso: falha ao ajustar permissão para firebird:firebird.\n";
+        } else {
+            std::cout << "[repldb] Permissão ajustada com sucesso para firebird:firebird.\n";
+        }
+    }
+
+    return (result == 0);
 }
 
 bool Replicator::copiarParaRemoto(const std::string& origem, const std::string& destinoHost, const std::string& destinoPath) {
