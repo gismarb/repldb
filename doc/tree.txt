@@ -3,6 +3,7 @@ repldb
 │   └── init.sql
 ├── doc                         # Documentos de referência para o projeto 
 │   ├── man.txt
+│   ├── roteiro_testes_repldb.txt
 │   ├── title.txt
 │   ├── TODO.txt
 │   ├── tree_d.txt
