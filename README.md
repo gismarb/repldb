@@ -1,98 +1,41 @@
-# repldb
+# ReplDB 🚀  
+**Replicação de Dados para Firebird 3.0 (Linux)**  
 
-***repldb** é uma ferramenta de linha de comando desenvolvida em C++ para gerenciar replicações de bancos de dados Firebird 3.0 via backup/restore. Ela suporta replicações locais e remotas, controle via banco intermediário (`repldb.fdb`) e agendamento via `cron`.*
-
----
-
-
-
-## Requisitos
-
-- Linux (server-side)
-- Firebird 3.0 instalado em `/opt/firebird`
-- Compilador C++17
-- Permissões para editar o `crontab`
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+![C++](https://img.shields.io/badge/C++-17-blue)
+![Firebird](https://img.shields.io/badge/Firebird-3.0-red)
+![Linux](https://img.shields.io/badge/Linux-Ubuntu-orange)
 
 ---
 
+## 📌 Sobre o Projeto
+O **ReplDB** é um programa de linha de comando (CLI), desenvolvido em **C++**, para gerenciar **replicações de bases Firebird 3.0**.  
+A replicação ocorre via **backup/restore** utilizando ferramentas nativas do Firebird (`gbak`, `isql`, `nbackup`), permitindo cópias **locais ou remotas** entre servidores Linux.  
 
+O projeto foi idealizado para:
+- Automatizar rotinas de replicação
+- Garantir consistência de dados
+- Reduzir esforços manuais de DBAs
+- Minizar rotinas complexas de replicação de dados
 
-## Compilação
+***A Estrutura do Banco de Controle (`repldb.fdb`)*:** 
 
-```bash
-make
+- Tabela `planos_replicacao`: registros de replicações planejadas
+- Tabela `log_replicacao`: registros de execuções realizadas
+- Suporte para cron via marcador `# REPLDB_JOB_<id>`
+
+---
+
+## ⚙️ Funcionalidades
+- Replicação **local** e **remota** via Service Manager  
+- Controle de planos e logs em banco intermediário (`repldb.fdb`)  
+- Agendamento automático via **cron**  
+- Arquitetura modular, pronta para futura expansão (triggers, replicação síncrona)  
+
+---
+
+## 📂 Estrutura do Repositório
 ```
-
-
-
-## Instalação
-
-```bash
-sudo make install
-```
-
-
-
-## Uso
-
-```bash
-repldb --init-db
-repldb --add-replica --fonte <path> --destino <path> [--schedule "<cron>"]
-repldb --remove-replica --id <id>
-repldb --list-replica
-repldb --run-replica --id <id>
-repldb --run-replica --all
-repldb --list-logs [--id <id>]
-repldb --help
-```
-
-
-
-## Estrutura do Banco de Controle (`repldb.fdb`)
-
-Tabela `planos_replicacao`: registros de replicações planejadas
-
-Tabela `log_replicacao`: registros de execuções realizadas
-
-Suporte para cron via marcador `# REPLDB_JOB_<id>`
-
-
-
-## Exemplos de Agendamentos
-
-```bash
-# Agendamento local
-repldb --add-replica --fonte /opt/firebird/data/master.fdb --destino /opt/firebird/data/replica.fdb --schedule "0 2 * * *"
-
-# Agendamento remoto
-repldb --add-replica --fonte /opt/firebird/data/master.fdb --destino 192.168.1.54:/opt/firebird/data/replica.fdb --schedule "0 2 * * *"
-```
-
-
-
-## Execução Manual
-
-```bash
-# Execução manual de um único plano selecionado
-repldb --run-replica --id 1
-
-# Execução manual de todos os planos cadastrados
-repldb --run-replica --all
-```
-
-
-
-## Remover Plano
-
-```bash
-repldb --remove-replica --id 1
-```
-
-
-
-## Estrutura de Diretórios
-
-```bash
 repldb
 ├── db                      	# Script SQL (estrutura do banco de dados de replicação)
 │   └── init.sql
@@ -127,12 +70,47 @@ repldb
 
 ```
 
+---
 
+## 🚀 Como Usar
 
-## Observações
+### 1️⃣ Compilar
+```bash
+make clean all
+```
 
-*A base `repldb.fdb` não é replicada.*
+### 2️⃣ Executar
+```bash
+sudo ./bin/repldb --help
+```
 
-*Os caminhos de banco (fonte/destino) devem ser válidos e acessíveis.*
+### 3️⃣ Exemplo de uso
+Replicar base local → remota:
+```bash
+# Agendamento local
+sudo ./bin/repldb --add-replica --fonte /opt/firebird/data/master.fdb --destino /opt/firebird/data/replica.fdb --schedule "0 2 * * *"
 
-*Todos os hosts devem usar Firebird 3.0, com mesma estrutura em `/opt/firebird`.*
+# Agendamento remoto
+sudo ./bin/repldb --add-replica --fonte /opt/firebird/data/master.fdb --destino 192.168.1.54:/opt/firebird/data/replica.fdb --schedule "0 2 * * *"
+```
+
+---
+
+## 📖 Documentação
+A documentação completa está na pasta [`doc`](./doc).  
+
+- [Guia de Instalação](./doc/INSTALL.md)  
+- [Guia de Uso](./doc/USAGE.md)  
+- [Roadmap / TODO](./doc/TODO.md)  
+
+---
+
+## 🤝 Contribuindo
+Contribuições são bem-vindas!  
+Basta abrir uma [issue](https://github.com/gismarb/repldb/issues) ou enviar um pull request.  
+
+---
+
+## 📜 Licença
+Distribuído sob a licença **GPL v3**.  
+Veja [LICENSE](./LICENSE) para mais detalhes.
